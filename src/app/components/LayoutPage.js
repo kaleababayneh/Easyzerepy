@@ -1,88 +1,9 @@
-"use client"
+import React from 'react'
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import Layout from "@/app/components/Layout"
-import ProtectedRoute from "@/app/components/ProtectedRoute"
-import { getWorkouts, createWorkout } from "@/app/services/workoutService"
-import { getRoutines, createRoutine } from "@/app/services/routineService"
-import LoadingSpinner from "@/app/components/LoadingSpinner"
-
-
-export default function Home() {
-  const [workouts, setWorkouts] = useState([])
-  const [routines, setRoutines] = useState([])
-  const [workoutName, setWorkoutName] = useState("")
-  const [workoutDescription, setWorkoutDescription] = useState("")
-  const [routineName, setRoutineName] = useState("")
-  const [routineDescription, setRoutineDescription] = useState("")
-  const [selectedWorkouts, setSelectedWorkouts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const router = useRouter()
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true)
-        const [workoutsData, routinesData] = await Promise.all([getWorkouts(), getRoutines()])
-        setWorkouts(workoutsData)
-        setRoutines(routinesData)
-      } catch (err) {
-        console.error("Failed to fetch data:", err)
-        setError("Failed to load data. Please try again later.")
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [])
-
-  const handleCreateWorkout = async (e) => {
-    e.preventDefault()
-    try {
-      const newWorkout = await createWorkout({
-        name: workoutName,
-        description: workoutDescription,
-      })
-      setWorkouts([...workouts, newWorkout])
-      setWorkoutName("")
-      setWorkoutDescription("")
-      // Show success message
-    } catch (err) {
-      console.error("Failed to create workout:", err)
-      setError("Failed to create workout. Please try again.")
-    }
-  }
-
-  const handleCreateRoutine = async (e) => {
-    e.preventDefault()
-    try {
-      const newRoutine = await createRoutine({
-        name: routineName,
-        description: routineDescription,
-        workouts: selectedWorkouts,
-      })
-      setRoutines([...routines, newRoutine])
-      setRoutineName("")
-      setRoutineDescription("")
-      setSelectedWorkouts([])
-      // Show success message
-    } catch (err) {
-      console.error("Failed to create routine:", err)
-      setError("Failed to create routine. Please try again.")
-    }
-  }
-
-  if (loading) {
-    return <LoadingSpinner />
-  }
-
+const LayoutPage = () => {
   return (
-    <ProtectedRoute>
-      <Layout>
-        <div className="row">
+    <div>
+    <div className="row">
           <div className="col-12">
             <h1 className="mb-4">Dashboard</h1>
             {error && (
@@ -264,8 +185,8 @@ export default function Home() {
             )}
           </div>
         </div>
-      </Layout>
-    </ProtectedRoute>
+    </div>
   )
 }
 
+export default LayoutPage

@@ -1,20 +1,26 @@
-"use client";
+"use client"
 
-import { useContext, useEffect } from "react";
-import { useRouter } from "next/navigation"; // Updated import
-import AuthContext from "./../context/AuthContext";
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/app/context/AuthContext"
+import LoadingSpinner from "@/app/components/LoadingSpinner"
 
 const ProtectedRoute = ({ children }) => {
-  const { user } = useContext(AuthContext);
-  const router = useRouter();
+  const { isAuthenticated, loading } = useAuth()
+  const router = useRouter()
 
   useEffect(() => {
-    // if (!user) {
-    //   router.push("/login");
-    // }
-  }, [user, router]);
+    if (!loading && !isAuthenticated) {
+      router.push("/login")
+    }
+  }, [isAuthenticated, loading, router])
 
-  return user ? children : children;
-};
+  if (loading) {
+    return <LoadingSpinner />
+  }
 
-export default ProtectedRoute;
+  return isAuthenticated ? children : null
+}
+
+export default ProtectedRoute
+

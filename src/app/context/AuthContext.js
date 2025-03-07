@@ -1,43 +1,86 @@
 "use client"
 
-import { createContext, useState } from "react";
-import axios from "axios";
-import { useRouter } from "next/navigation";
+import { createContext, useState, useEffect, useContext } from "react"
+import { useRouter } from "next/navigation"
+import {
+  login as loginService,
+  register as registerService,
+  logout as logoutService,
+  getCurrentUser,
+} from "@/app/services/authService"
 
-const AuthContext = createContext();
+const AuthContext = createContext()
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const router = useRouter();
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const router = useRouter()
 
-    const login = async (username, password) => {
-        try {
-            const formData = new FormData();
-            formData.append('username', username);
-            formData.append('password', password);
-            const response = await axios.post('http://localhost:8000/auth/token', formData, {
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            });
-            axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
-            localStorage.setItem('token', response.data.access_token);
-            setUser(response.data);
-            router.push('/');
-        } catch (error) {
-            console.log('Login Failed:', error);
-        }
-    };
+  useEffect(() => {
+    // Check if user is logged in on initial load
+    const checkLoggedIn = async () => {
+      try {
+        const currentUser = getCurrentUser()
+        setUser(currentUser)
+      } catch (err) {
+        console.error("Authentication check failed:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-    const logout = () => {
-        setUser(null);
-        delete axios.defaults.headers.common['Authorization'];
-        router.push('/login')
-    };
+    checkLoggedIn()
+  }, [])
 
-    return (
-        <AuthContext.Provider value={{ user, login, logout}}>
-            {children}
-        </AuthContext.Provider>
-    );
-};
+  const login = async (username, password) => {
+    setError(null)
+    try {
+      const userData = await loginService(username, password)
+      setUser(userData)
+      router.push("/")
+      return userData
+    } catch (err) {
+      setError(err.response?.data?.detail || "Login failed. Please check your credentials.")
+      throw err
+    }
+  }
 
-export default AuthContext;
+  const register = async (username, password) => {
+    setError(null)
+    try {
+      await registerService(username, password)
+      return await login(username, password)
+    } catch (err) {
+      setError(err.response?.data?.detail || "Registration failed. Please try again.")
+      throw err
+    }
+  }
+
+  const logout = () => {
+    logoutService()
+    setUser(null)
+    router.push("/login")
+  }
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        logout,
+        register,
+        loading,
+        error,
+        isAuthenticated: !!user,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  )
+}
+
+export const useAuth = () => useContext(AuthContext)
+
+export default AuthContext
+

@@ -1,61 +1,106 @@
-"use client";
+"use client"
 
-import { useContext, useState, useEffect } from 'react';
-import AuthContext from '../context/AuthContext';
-import ProtectedRoute from '../components/ProtectedRoute';
-import { getTries, createTry, deleteTry } from '../../../api/services/tryService';
+import { useState, useEffect } from "react"
+import Layout from "@/app/components/Layout"
+import ProtectedRoute from "@/app/components/ProtectedRoute"
+import { getTries, createTry, deleteTry } from "@/app/services/tryService"
+import LoadingSpinner from "@/app/components/LoadingSpinner"
 
-const Home = () => {
-  const { user, logout } = useContext(AuthContext);
-  const [tries, setTries] = useState([]);
-  const [tryName, setTryName] = useState('');
-  const [tryDescription, setTryDescription] = useState('');
+export default function Tries() {
+  const [tries, setTries] = useState([])
+  const [tryName, setTryName] = useState("")
+  const [tryDescription, setTryDescription] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [successMessage, setSuccessMessage] = useState(null)
 
   useEffect(() => {
-    fetchTries();
-  }, []);
+    fetchTries()
+  }, [])
 
   const fetchTries = async () => {
-    const data = await getTries();
-    setTries(data);
-  };
+    try {
+      setLoading(true)
+      const data = await getTries()
+      setTries(data)
+      setError(null)
+    } catch (err) {
+      console.error("Failed to fetch tries:", err)
+      setError("Failed to load tries. Please try again later.")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleCreateTry = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
     try {
-      const newTry = { name: tryName, description: tryDescription };
-      await createTry(newTry);
-      fetchTries();
-      setTryName('');
-      setTryDescription('');
-    } catch (error) {
-      console.error('Failed to create try:', error);
+      setLoading(true)
+      const newTry = { name: tryName, description: tryDescription }
+      await createTry(newTry)
+      setTryName("")
+      setTryDescription("")
+      setSuccessMessage("Try created successfully!")
+      setTimeout(() => setSuccessMessage(null), 3000)
+      await fetchTries()
+    } catch (err) {
+      console.error("Failed to create try:", err)
+      setError("Failed to create try. Please try again.")
+    } finally {
+      setLoading(false)
     }
-  };
+  }
 
   const handleDeleteTry = async (tryId) => {
-    await deleteTry(tryId);
-    fetchTries();
-  };
+    try {
+      setLoading(true)
+      await deleteTry(tryId)
+      setSuccessMessage("Try deleted successfully!")
+      setTimeout(() => setSuccessMessage(null), 3000)
+      await fetchTries()
+    } catch (err) {
+      console.error("Failed to delete try:", err)
+      setError("Failed to delete try. Please try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading && tries.length === 0) {
+    return <LoadingSpinner />
+  }
 
   return (
     <ProtectedRoute>
-      <div className="container">
-        <h1>Welcome!</h1>
-        <button onClick={logout} className="btn btn-danger">Logout</button>
+      <Layout>
+        <div className="row">
+          <div className="col-12">
+            <h1 className="mb-4">Tries</h1>
+            {error && (
+              <div className="alert alert-danger" role="alert">
+                {error}
+              </div>
+            )}
+            {successMessage && (
+              <div className="alert alert-success" role="alert">
+                {successMessage}
+              </div>
+            )}
+          </div>
+        </div>
 
-        <div className="accordion mt-5 mb-5" id="accordionExample">
-          <div className="accordion-item">
-            <h2 className="accordion-header" id="headingOne">
-              <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                Create Try
-              </button>
-            </h2>
-            <div id="collapseOne" className="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
-              <div className="accordion-body">
+        <div className="row mb-5">
+          <div className="col-md-6">
+            <div className="card">
+              <div className="card-header bg-primary text-white">
+                <h5 className="mb-0">Create Try</h5>
+              </div>
+              <div className="card-body">
                 <form onSubmit={handleCreateTry}>
                   <div className="mb-3">
-                    <label htmlFor="tryName" className="form-label">Try Name</label>
+                    <label htmlFor="tryName" className="form-label">
+                      Try Name
+                    </label>
                     <input
                       type="text"
                       className="form-control"
@@ -66,40 +111,61 @@ const Home = () => {
                     />
                   </div>
                   <div className="mb-3">
-                    <label htmlFor="tryDescription" className="form-label">Try Description</label>
-                    <input
-                      type="text"
+                    <label htmlFor="tryDescription" className="form-label">
+                      Try Description
+                    </label>
+                    <textarea
                       className="form-control"
                       id="tryDescription"
+                      rows="3"
                       value={tryDescription}
                       onChange={(e) => setTryDescription(e.target.value)}
                       required
-                    />
+                    ></textarea>
                   </div>
-                  <button type="submit" className="btn btn-primary">Create Try</button>
+                  <button type="submit" className="btn btn-primary" disabled={loading}>
+                    {loading ? "Creating..." : "Create Try"}
+                  </button>
                 </form>
               </div>
             </div>
           </div>
         </div>
 
-        <div>
-          <h3>Your Tries:</h3>
-          <ul>
-            {tries.map((tryItem) => (
-              <div className="card" key={tryItem.id}>
-                <div className="card-body">
-                  <h5 className="card-title">{tryItem.name}</h5>
-                  <p className="card-text">{tryItem.description}</p>
-                  <button onClick={() => handleDeleteTry(tryItem.id)} className="btn btn-danger">Delete</button>
-                </div>
+        <div className="row">
+          <div className="col-12">
+            <h2 className="mb-4">Your Tries</h2>
+            {tries.length === 0 ? (
+              <div className="alert alert-info">You don't have any tries yet. Create one above!</div>
+            ) : (
+              <div className="row">
+                {tries.map((tryItem) => (
+                  <div className="col-md-6 col-lg-4 mb-4" key={tryItem.id}>
+                    <div className="card h-100">
+                      <div className="card-header bg-info text-white">
+                        <h5 className="mb-0">{tryItem.name}</h5>
+                      </div>
+                      <div className="card-body">
+                        <p className="card-text">{tryItem.description}</p>
+                      </div>
+                      <div className="card-footer d-flex justify-content-end">
+                        <button
+                          onClick={() => handleDeleteTry(tryItem.id)}
+                          className="btn btn-outline-danger btn-sm"
+                          disabled={loading}
+                        >
+                          {loading ? "Deleting..." : "Delete"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </ul>
+            )}
+          </div>
         </div>
-      </div>
+      </Layout>
     </ProtectedRoute>
-  );
-};
+  )
+}
 
-export default Home;
