@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/app/context/AuthContext"
-import Layout from "@/app/components/Layout"
+import { useAuth } from "../context/AuthContext"
+import Layout from "../components/Layout"
 
 export default function Login() {
   const { login, register, error: authError } = useAuth()

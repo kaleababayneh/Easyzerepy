@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import Layout from "@/app/components/Layout"
-import ProtectedRoute from "@/app/components/ProtectedRoute"
-import { getWorkouts, createWorkout } from "@/app/services/workoutService"
-import { getRoutines, createRoutine } from "@/app/services/routineService"
-import LoadingSpinner from "@/app/components/LoadingSpinner"
+import Layout from "./components/Layout"
+import ProtectedRoute from "./components/ProtectedRoute"
+import { getWorkouts, createWorkout } from "./services/workoutService"
+import { getRoutines, createRoutine } from "./services/routineService"
+import LoadingSpinner from "./components/LoadingSpinner"
 
 
 export default function Home() {
@@ -121,7 +121,7 @@ export default function Home() {
                     <textarea
                       className="form-control"
                       id="workoutDescription"
-                      rows="3"
+                     
                       value={workoutDescription}
                       onChange={(e) => setWorkoutDescription(e.target.value)}
                       required
@@ -162,7 +162,7 @@ export default function Home() {
                     <textarea
                       className="form-control"
                       id="routineDescription"
-                      rows="3"
+                     
                       value={routineDescription}
                       onChange={(e) => setRoutineDescription(e.target.value)}
                       required

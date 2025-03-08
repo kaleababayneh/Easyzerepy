@@ -2,8 +2,8 @@
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/app/context/AuthContext"
-import LoadingSpinner from "@/app/components/LoadingSpinner"
+import { useAuth } from "../context/AuthContext"
+import LoadingSpinner from "../components/LoadingSpinner"
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth()

@@ -1,18 +1,24 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import Layout from "@/app/components/Layout"
-import ProtectedRoute from "@/app/components/ProtectedRoute"
-import { getTries, createTry, deleteTry } from "@/app/services/tryService"
-import LoadingSpinner from "@/app/components/LoadingSpinner"
+import { useState, useEffect, FormEvent } from "react"
+import Layout from "../components/Layout"
+import ProtectedRoute from "../components/ProtectedRoute"
+import { getTries, createTry, deleteTry } from "../services/tryService"
+import LoadingSpinner from "../components/LoadingSpinner"
+
+interface Try {
+  id: string
+  name: string
+  description: string
+}
 
 export default function Tries() {
-  const [tries, setTries] = useState([])
-  const [tryName, setTryName] = useState("")
-  const [tryDescription, setTryDescription] = useState("")
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [successMessage, setSuccessMessage] = useState(null)
+  const [tries, setTries] = useState<Try[]>([])
+  const [tryName, setTryName] = useState<string>("")
+  const [tryDescription, setTryDescription] = useState<string>("")
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   useEffect(() => {
     fetchTries()
@@ -32,7 +38,7 @@ export default function Tries() {
     }
   }
 
-  const handleCreateTry = async (e) => {
+  const handleCreateTry = async (e: FormEvent) => {
     e.preventDefault()
     try {
       setLoading(true)
@@ -51,7 +57,7 @@ export default function Tries() {
     }
   }
 
-  const handleDeleteTry = async (tryId) => {
+  const handleDeleteTry = async (tryId: string) => {
     try {
       setLoading(true)
       await deleteTry(tryId)
@@ -65,7 +71,6 @@ export default function Tries() {
       setLoading(false)
     }
   }
-
   if (loading && tries.length === 0) {
     return <LoadingSpinner />
   }
@@ -117,7 +122,7 @@ export default function Tries() {
                     <textarea
                       className="form-control"
                       id="tryDescription"
-                      rows="3"
+                      rows={3}
                       value={tryDescription}
                       onChange={(e) => setTryDescription(e.target.value)}
                       required
@@ -168,4 +173,3 @@ export default function Tries() {
     </ProtectedRoute>
   )
 }
-

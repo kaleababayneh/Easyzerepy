@@ -24,4 +24,3 @@ export const deleteTry = async (id) => {
   const response = await api.delete(`/tries/${id}`)
   return response.data
 }
-
