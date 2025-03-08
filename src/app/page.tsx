@@ -7,7 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute"
 import { getWorkouts, createWorkout } from "./services/workoutService"
 import { getRoutines, createRoutine } from "./services/routineService"
 import LoadingSpinner from "./components/LoadingSpinner"
-
+import "./globals.css"
 
 export default function Home() {
   const [workouts, setWorkouts] = useState([])
